@@ -18,20 +18,18 @@ FROM eclipse-temurin:21-jre-alpine AS runner
 
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring && \
-    mkdir -p /tmp/contentflow && chown -R spring:spring /tmp/contentflow
-
+RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 COPY --from=builder /build/target/contentflow-backend-1.0.0.jar /app/app.jar
 
 # Vercel container specifications:
-# 1. Listen on $PORT (defaults to 8080 if not set)
-# 2. Store database in writable /tmp partition
-# 3. Lean JVM memory footprint for fast serverless cold start
+# 1. Listen on dynamic $PORT (defaults to 8080)
+# 2. In-memory H2 for zero-latency instant startup & zero permission barriers
+# 3. Optimized JVM memory footprint
 ENV PORT=8080 \
     SPRING_PROFILES_ACTIVE=prod \
-    SPRING_DATASOURCE_URL="jdbc:h2:file:/tmp/contentflow/db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1" \
+    SPRING_DATASOURCE_URL="jdbc:h2:mem:contentflow;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE" \
     JAVA_OPTS="-Xms64m -Xmx400m -XX:+UseG1GC"
 
 EXPOSE 8080

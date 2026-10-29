@@ -7,17 +7,23 @@
     },
     "api": {
       "root": "backend",
-      "framework": "container"
+      "runtime": "container",
+      "entrypoint": "Dockerfile.vercel"
     }
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": { "service": "api" }
+      "source": "/api/:path*",
+      "destination": {
+        "service": "api",
+        "path": "/api/:path*"
+      }
     },
     {
       "source": "/(.*)",
-      "destination": { "service": "web" }
+      "destination": {
+        "service": "web"
+      }
     }
   ]
 }
