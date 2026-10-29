@@ -191,6 +191,8 @@ contentflow/
 │   │       └── java/com/contentflow/
 │   │           ├── ContentServiceTest.java        # Unit tests with Mockito (7 tests)
 │   │           └── ContentControllerIntegrationTest.java # MockMvc integration tests (4 tests)
+│   ├── .dockerignore                              # Backend Docker build exclusion rules
+│   ├── Dockerfile                                 # Multi-stage Java 21 build & runtime
 │   ├── data/                                      # File-based H2 database store
 │   └── pom.xml                                    # Maven configuration (Java 21)
 ├── frontend/
@@ -203,8 +205,9 @@ contentflow/
 │   │   ├── dashboard/page.tsx                     # Dynamic analytics dashboard
 │   │   ├── settings/page.tsx                      # Settings & backend latency tester
 │   │   ├── globals.css                            # Tailored design system tokens
-│   │   └── layout.tsx                             # Root layout, Sidebar, Navbar
+│   │   └── layout.tsx                             # Root layout, Server component
 │   ├── components/
+│   │   ├── ClientShell.tsx                        # Client providers & responsive drawer
 │   │   ├── ConfirmModal.tsx                       # Modal confirmation dialog
 │   │   ├── ContentDetailModal.tsx                 # Comprehensive detail modal
 │   │   ├── ContentForm.tsx                        # Editor with live char limit & preview
@@ -213,18 +216,24 @@ contentflow/
 │   │   ├── Sidebar.tsx                            # Sidebar & live health indicator
 │   │   ├── SocialPreview.tsx                      # Simulated social cards (X, LinkedIn)
 │   │   ├── StatusBadge.tsx                        # Status pills (Draft, Scheduled)
+│   │   ├── ThemeProvider.tsx                      # Light & Dark theme state manager
+│   │   ├── ThemeToggle.tsx                        # Theme switcher button
 │   │   └── ToastProvider.tsx                      # Toast notification system
 │   ├── lib/
 │   │   ├── api.ts                                 # Typed API service
 │   │   ├── types.ts                               # TypeScript domain types
 │   │   └── utils.ts                               # Formatting & character boundaries
+│   ├── .dockerignore                              # Frontend Docker build exclusion rules
 │   ├── .env.example
 │   ├── .env.local
+│   ├── Dockerfile                                 # Multi-stage Next.js production build
 │   ├── next.config.mjs
 │   ├── package.json
 │   ├── postcss.config.js
 │   ├── tailwind.config.js
 │   └── tsconfig.json
+├── .env.example                                   # Compose environment template
+├── docker-compose.yml                             # Multi-container orchestration
 └── README.md
 ```
 
@@ -242,7 +251,32 @@ contentflow/
 
 ## 8. Startup Commands
 
-### Step 1: Start the Java Spring Boot Backend
+### Option A: 1-Command Startup via Docker Compose (Recommended)
+Run the entire full-stack application (Java 21 Spring Boot + Next.js 14 + H2 Database with volume persistence) with one command:
+
+```bash
+docker compose up --build
+```
+
+- **Frontend Dashboard**: Open [http://localhost:3000](http://localhost:3000)
+- **Backend REST API**: Accessible on [http://localhost:8080/api](http://localhost:8080/api)
+- **H2 Console**: Accessible on [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+- **Database Persistence**: Managed automatically via named volume `contentflow-db-data`
+
+To run in the background:
+```bash
+docker compose up -d
+```
+To stop all services:
+```bash
+docker compose down
+```
+
+---
+
+### Option B: Local Development (Manual)
+
+#### Step 1: Start the Java Spring Boot Backend
 Open a terminal in the `backend` directory:
 
 ```bash
@@ -257,7 +291,7 @@ java -jar target/contentflow-backend-1.0.0.jar
 * The H2 database file will automatically initialize in `backend/data/contentflow.mv.db`.
 * Realistic demo data (7 diverse records across X, LinkedIn, Blog, Instagram, Facebook) will seed automatically.
 
-### Step 2: Start the Next.js Frontend
+#### Step 2: Start the Next.js Frontend
 Open a second terminal in the `frontend` directory:
 
 ```bash
