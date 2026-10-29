@@ -1,15 +1,13 @@
 # ==========================================
-# Vercel Container Runtime: Java 21 Spring Boot 3
+# Vercel Fluid Compute Container: Java 21 Spring Boot
 # ==========================================
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /build
 
-# Cache Maven dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Copy source code and build production jar
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
@@ -20,19 +18,22 @@ FROM eclipse-temurin:21-jre-alpine AS runner
 
 WORKDIR /app
 
-# Non-root application user and data directory
 RUN addgroup -S spring && adduser -S spring -G spring && \
-    mkdir -p /app/data && chown -R spring:spring /app
+    mkdir -p /tmp/contentflow && chown -R spring:spring /tmp/contentflow
 
 USER spring:spring
 
 COPY --from=builder /build/target/contentflow-backend-1.0.0.jar /app/app.jar
 
-# Vercel injects $PORT at runtime
+# Vercel container specifications:
+# 1. Listen on $PORT (defaults to 8080 if not set)
+# 2. Store database in writable /tmp partition
+# 3. Lean JVM memory footprint for fast serverless cold start
 ENV PORT=8080 \
     SPRING_PROFILES_ACTIVE=prod \
-    JAVA_OPTS="-Xms256m -Xmx512m"
+    SPRING_DATASOURCE_URL="jdbc:h2:file:/tmp/contentflow/db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1" \
+    JAVA_OPTS="-Xms64m -Xmx400m -XX:+UseG1GC"
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.datasource.url=\"${SPRING_DATASOURCE_URL}\" -jar /app/app.jar"]

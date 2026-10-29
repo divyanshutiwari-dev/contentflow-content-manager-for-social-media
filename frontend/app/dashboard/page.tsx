@@ -135,8 +135,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>
-              <strong>Backend connection error:</strong> {error}. Ensure your Spring Boot backend is
-              running on <code>http://localhost:8080</code>.
+              <strong>Backend connection error:</strong> {error}. Please verify your backend server status.
             </span>
           </div>
           <button

@@ -10,6 +10,16 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: process.env.INTERNAL_API_URL
+          ? `${process.env.INTERNAL_API_URL}/api/:path*`
+          : 'http://localhost:8080/api/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

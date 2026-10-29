@@ -101,7 +101,7 @@ export default function SettingsPage() {
             <div className="mt-2 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span className="text-xs font-mono font-medium text-foreground">
-                http://localhost:8080/api
+                {process.env.NEXT_PUBLIC_API_URL || '/api'}
               </span>
             </div>
             {pingLatency !== null && (
